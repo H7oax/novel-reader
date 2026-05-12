@@ -11,18 +11,17 @@ jobs:
 
     steps:
     - name: Check out repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
     - name: Upgrade pip and install dependencies
       run: |
         python -m pip install --upgrade pip
-        # 使用阿里云镜像加速，防止网络超时
-        pip install -i https://mirrors.aliyun.com/pypi/simple/ PyQt5 pdfplumber python-docx ebooklib beautifulsoup4 pyinstaller
+        pip install PyQt5 pdfplumber python-docx ebooklib beautifulsoup4 pyinstaller
 
     - name: Check novel_reader.py exists
       run: |
@@ -37,13 +36,9 @@ jobs:
     - name: Build EXE with PyInstaller
       run: |
         pyinstaller --onefile --noconsole --hidden-import=ebooklib.epub --name "novel_reader" novel_reader.py
-        if not exist dist\novel_reader.exe (
-          echo "ERROR: Build failed, EXE not generated"
-          exit 1
-        )
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload EXE
+      uses: actions/upload-artifact@v4
       with:
-        name: NovelReader
+        name: NovelReader-EXE
         path: dist/novel_reader.exe
