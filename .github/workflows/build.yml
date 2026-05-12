@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - name: Check out repo
@@ -23,19 +25,27 @@ jobs:
         python -m pip install --upgrade pip
         pip install PyQt5 pdfplumber python-docx ebooklib beautifulsoup4 pyinstaller
 
-    - name: Check novel_reader.py exists
+    - name: Check novel_reader.py exists (PowerShell)
+      shell: powershell
       run: |
-        if not exist novel_reader.py (
-          echo "ERROR: novel_reader.py not found!"
+        if (Test-Path novel_reader.py) {
+          Write-Host "novel_reader.py found"
+          Get-Item novel_reader.py | Select-Object Name, Length
+        } else {
+          Write-Error "novel_reader.py NOT found!"
           exit 1
-        ) else (
-          echo "novel_reader.py found, size:"
-          dir novel_reader.py
-        )
+        }
 
     - name: Build EXE with PyInstaller
+      shell: powershell
       run: |
         pyinstaller --onefile --noconsole --hidden-import=ebooklib.epub --name "novel_reader" novel_reader.py
+        if (Test-Path dist\novel_reader.exe) {
+          Write-Host "BUILD SUCCESS"
+        } else {
+          Write-Error "EXE not generated!"
+          exit 1
+        }
 
     - name: Upload EXE
       uses: actions/upload-artifact@v4
